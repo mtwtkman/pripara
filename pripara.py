@@ -59,9 +59,26 @@ class Config:
 
 
 class User:
-    def __init__(self, src):
-        self.src = src
-        self.name = re.match(r'(.+)\sさん.*', src.h2.text).group(1)
+    class Meta:
+        def __init__(self):
+            self.config = Config()
+            self.config.load()
+            self.client = Client(**self.config.as_dict())
+
+    def __init__(self):
+        self.meta = self.Meta()
+        self.src = None
+        self.name = None
+
+    def __str__(self):
+        if not self.meta.client.logged_in:
+            return '<User: You have not logged in yet.>'
+        return '<User: You logged in as {}.>'.format(self.name)
+
+    def login(self):
+        response = self.meta.client.login()
+        self.src = bs(response.text, 'html.parser')
+        self.name = re.match(r'(.+)\sさん.*', self.src.h2.text).group(1)
 
 
 class LoginFailedError(Exception):
@@ -79,19 +96,6 @@ class Client:
         self._user = None
         self.logged_in = False
 
-    @property
-    def user(self):
-        self._user
-
-    @user.setter
-    def user(self, u):
-        self._user = u
-
-    def __str__(self):
-        if not self.logged_in:
-            return '<Config: You have not logged in yet.>'
-        return '<Config: You logged in as {}.>'.format(self.user.name)
-
     def login(self):
         # NOTE: This never cache session. So this need to login every running.
         url = f'{HOST}/join/login'
@@ -105,14 +109,13 @@ class Client:
         set_cookie = response.headers['Set-Cookie']
         self.session.update({
             'TTA_MGSID': re.search(r'TTA_MGSID=([a-z0-9]+)', set_cookie).group(1),
-            'TTA_MGSID_AuthTicket': (r'TTA_MGSID_AuthTicket=([a-z0-9])', set_cookie).group(1),
+            'TTA_MGSID_AuthTicket': re.search(r'TTA_MGSID_AuthTicket=([a-z0-9]+)', set_cookie).group(1),
         })
         print('login succeeded.')
-        return bs(response.text)
+        return response
 
 
 def pri():
-    config = Cnfig()
-    config.load()
-    client = Client(**config.as_dict)
-    user = User(client.login())
+    user = User()
+    client = Client(user, **config.as_dict)
+    user.login()
