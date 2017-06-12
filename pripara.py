@@ -6,7 +6,7 @@ import json
 from getpass import getpass
 
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup as bs
 
 
 if sys.version_info.major != 3:
@@ -58,6 +58,12 @@ class Config:
         }
 
 
+class User:
+    def __init__(self, src):
+        self.src = src
+        self.name = re.match(r'(.+)\sさん.*', src.h2.text).group(1)
+
+
 class LoginFailedError(Exception):
     pass
 
@@ -70,6 +76,21 @@ class Client:
             'TTA_MGSID': None,
             'TTA_MGSID_AuthTicket': None,
         }
+        self._user = None
+        self.logged_in = False
+
+    @property
+    def user(self):
+        self._user
+
+    @user.setter
+    def user(self, u):
+        self._user = u
+
+    def __str__(self):
+        if not self.logged_in:
+            return '<Config: You have not logged in yet.>'
+        return '<Config: You logged in as {}.>'.format(self.user.name)
 
     def login(self):
         # NOTE: This never cache session. So this need to login every running.
@@ -80,9 +101,18 @@ class Client:
         })
         if 'マイページへログイン' in response.text:
             raise LoginFailedError('You need to ensure the email and password are correct.')
+        self.logged_in = True
         set_cookie = response.headers['Set-Cookie']
         self.session.update({
             'TTA_MGSID': re.search(r'TTA_MGSID=([a-z0-9]+)', set_cookie).group(1),
             'TTA_MGSID_AuthTicket': (r'TTA_MGSID_AuthTicket=([a-z0-9])', set_cookie).group(1),
         })
         print('login succeeded.')
+        return bs(response.text)
+
+
+def pri():
+    config = Cnfig()
+    config.load()
+    client = Client(**config.as_dict)
+    user = User(client.login())
