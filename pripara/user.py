@@ -55,7 +55,7 @@ class Int(Field):
 
 
 class User:
-    fields = ('splay_data_date', 'name', 'teammate')
+    fields = ('play_data_date', 'name', 'teammate')
 
     def __init__(self):
         self._soup = {}
@@ -71,6 +71,10 @@ class User:
         return self.__dict__[name]
 
     def bs(self, name, src):
-        if name not in self.soup:
+        if name not in self._soup:
             self._soup[name] = bs(src, 'html.parser')
-        self.name(re.match(r'(.+)\sさん.*', src.h2.text).group(1))
+
+    def update(self, name, key):
+        if key == 'login':
+            value = re.match(r'(.+)\sさん.*', self._soup[name].h2.text).group(1)
+        setattr(self, name, value)

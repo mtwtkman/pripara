@@ -78,6 +78,7 @@ class Client:
             'TTA_MGSID_AuthTicket': re.search(r'TTA_MGSID_AuthTicket=([a-z0-9]+)', set_cookie).group(1),
         })
         self.user.bs('login', response.text)
+        self.user.update('name', 'login')
         print(f'logged in as {self.user.name}.')
 
     @require_login

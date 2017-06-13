@@ -106,11 +106,23 @@ class UserTest(unittest.TestCase):
         self.assertTrue(hasattr(sbj, 'teammate'))
         self.assertTrue(isinstance(sbj.teammate, Int))
 
-    def test_attr(self):
+    def test_update_name(self):
         sbj = self._makeOne()
-        name = 'hoge'
-        sbj.name = name
-        self.assertEqual(sbj.name, name)
+        v = 'hoge'
+        sbj.name = v
+        self.assertEqual(sbj.name, v)
+
+    def test_update_play_data_date(self):
+        sbj = self._makeOne()
+        v = '2017年12月31日'
+        sbj.play_data_date = v
+        self.assertEqual(sbj.play_data_date, v)
+
+    def test_update_teammate(self):
+        sbj = self._makeOne()
+        v = 100
+        sbj.teammate = v
+        self.assertEqual(sbj.teammate, v)
 
 
 if __name__ == '__main__':
