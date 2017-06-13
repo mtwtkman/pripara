@@ -1,0 +1,6 @@
+machine:
+  python:
+    version: 3.6.1
+test:
+  post:
+    python -m unittest tests/*.py
