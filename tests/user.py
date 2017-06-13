@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
+import os
 import sys
 import unittest
 from datetime import datetime
 
-sys.path.append('../pripara')
+sys.path.append(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    '..',
+))
 
 from pripara.user import Datetime, Str, Int
 

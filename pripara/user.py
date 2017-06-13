@@ -55,31 +55,20 @@ class Int(Field):
 
 
 class User:
-    fields = [
-        ('play_data_date', Datetime),
-        ('name', Str),
-        ('teammate', Int),
-    ]
-    field_names = [x[0] for x in fields]
+    fields = ('splay_data_date', 'name', 'teammate')
 
     def __init__(self):
         self._soup = {}
-        for field, T in self.fields:
-            self.__dict__[field] = T()
+        self.play_data_date = Datetime()
+        self.name = Str()
+        self.teammate = Int()
 
     def __getattr__(self, name):
-        if name in self.field_names:
-            return self.__dict__.get(name).value
-        if not hasattr(self, name):
+        if name not in self.__dict__:
             raise AttributeError
-        return self.__dict__.get(name)
-
-    def __setattr__(self, name, value):
-        if name in self.field_names:
-            field = getattr(self, name)
-            field.value = value
-        else:
-            object.__setattr__(self, name, value)
+        if name in fields:
+            return self.__dict__[name].value
+        return self.__dict__[name]
 
     def bs(self, name, src):
         if name not in self.soup:
