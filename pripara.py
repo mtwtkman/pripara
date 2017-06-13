@@ -9,8 +9,9 @@ import requests
 from bs4 import BeautifulSoup as bs
 
 
-if sys.version_info.major != 3:
-    print('This requires python3+')
+v = sys.version_info
+if v.major != 3 and v.minor < 6:
+    print('This requires python3.6+')
     sys.exit(0)
 
 
@@ -33,11 +34,11 @@ class Config:
                 conf = json.loads(fp.read())
         except FileNotFoundError:
             conf = {
-                'password': None,
-                'email': None,
+                'password': os.getenv('PRIPARA_PASSWORD', None),
+                'email': os.getenv('PRIPARA_EMAIL', None),
             }
-        self.password = os.getenv('PRIPARA_PASSWORD', conf['password'])
-        self.email = os.getenv('PRIPARA_EMAIL', conf['email'])
+        self.password = conf['password']
+        self.email = conf['email']
         while not all([self.password, self.email]):
             print('You must create a information to login. Please input.')
             p = getpass('password >>>')
@@ -47,9 +48,9 @@ class Config:
                 continue
             self.password = p
             self.email = e
-            print('Now created a config file named "conf.json" to this directory.')
             with open(self.file_name, 'w') as fp:
                 fp.write(json.dumps({'password': self.password, 'email': self.email}))
+            print('Created a config file named "conf.json" to this directory.')
 
     def as_dict(self):
         return {
@@ -67,7 +68,6 @@ class User:
 
     def __init__(self):
         self.meta = self.Meta()
-        self.src = None
         self.name = None
 
     def __str__(self):
@@ -75,10 +75,13 @@ class User:
             return '<User: You have not logged in yet.>'
         return '<User: You logged in as {}.>'.format(self.name)
 
+    def _set_data(self):
+        src = self.meta.src
+        self.name = re.match(r'(.+)\sさん.*', src.h2.text).group(1)
+
     def login(self):
         response = self.meta.client.login()
-        self.src = bs(response.text, 'html.parser')
-        self.name = re.match(r'(.+)\sさん.*', self.src.h2.text).group(1)
+        self._set_data(bs(response.text, 'html.parser'))
 
 
 class LoginFailedError(Exception):
@@ -97,7 +100,6 @@ class Client:
         self.logged_in = False
 
     def login(self):
-        # NOTE: This never cache session. So this need to login every running.
         url = f'{HOST}/join/login'
         response = requests.post(url, data={
             'password': self.password,
@@ -117,5 +119,4 @@ class Client:
 
 def pri():
     user = User()
-    client = Client(user, **config.as_dict)
     user.login()
