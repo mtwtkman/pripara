@@ -120,6 +120,20 @@ class UserTest(unittest.TestCase):
         sbj.initial(self.src)
         result = sbj.data().split('\n')
         self.assertEqual(result[0], 'User data')
+        self.assertEqual(result[1], '-- As of 2017/10/01 --')
+        self.assertEqual(result[2], 'id:\t100')
+        self.assertEqual(result[3], 'name:\tほげ')
+        self.assertEqual(result[4], 'teammate:\t10')
+        self.assertEqual(result[5], 'rank:\t神アイドル')
+        self.assertEqual(result[6], 'like:\t400')
+        self.assertEqual(result[7], 'weekly ranking:\t79')
+        self.assertEqual(result[8], 'weekly total:\t111')
+
+    def test_print_after_loading_data(self):
+        sbj = self._makeOne()
+        sbj.initial(self.src)
+        result = sbj.__str__()
+        self.assertEqual(result, '<User: id=100 name=ほげ')
 
 
 if __name__ == '__main__':

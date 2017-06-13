@@ -78,6 +78,7 @@ class User:
     def data(self):
         return '\n'.join((
             'User data',
+            f'-- As of {self.play_data_date.strftime("%Y/%m/%d")} --',
             f'id:\t{self.id}',
             f'name:\t{self.name}',
             f'teammate:\t{self.teammate}',
