@@ -21,3 +21,6 @@ jobs:
                 command: |
                     . venv/bin/activate
                     python -m unittest tests/*.py
+            - store_artifacts:
+                path: test-reports/
+                destination: tr1
