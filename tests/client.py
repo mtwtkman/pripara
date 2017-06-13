@@ -70,9 +70,3 @@ class ValidResponseTest(DecoratorTestMixin, unittest.TestCase):
         c = self._dummyClass(r)
         response = self._callFUT(c.method)(c)
         self.assertEqual(response.status_code, code)
-
-
-class ClientTestMixin:
-    def _makeOne(self):
-        from pripara.client import Client
-        return Client()
