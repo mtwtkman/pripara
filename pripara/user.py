@@ -2,6 +2,8 @@
 import re
 from datetime import datetime
 
+from bs4 import BeautifulSoup as bs
+
 
 class Field:
     _type = None
@@ -49,17 +51,49 @@ class Int(Field):
 
 
 class User:
-    fields = ('play_data_date', 'name', 'teammate')
+    fields = (
+        'play_data_date', 'name', 'teammate',
+        'id', 'rank', 'like', 'weekly_ranking',
+        'weekly_total'
+    )
 
     def __init__(self):
-        self._soup = {}
-        self.play_data_date = Datetime()
-        self.name = Str()
-        self.teammate = Int()
+        self._play_data_date = Datetime()
+        self._name = Str()
+        self._teammate = Int()
+        self._id = Int()
+        self._rank = Str()
+        self._like = Int()
+        self._weekly_ranking = Int()
+        self._weekly_total = Int()
 
-    def __getattr__(self, name):
-        if name not in self.__dict__:
-            raise AttributeError
-        if name in fields:
-            return self.__dict__[name].value
-        return self.__dict__[name]
+    def __str__(self):
+        return f'<User: id={self.id} name={self.name}'
+
+    def __getattribute__(self, name):
+        if name in object.__getattribute__(self, 'fields'):
+            return object.__getattribute__(self, f'_{name}').value
+        return object.__getattribute__(self, name)
+
+    def data(self):
+        return '\n'.join((
+            'User data',
+            f'id:\t{self.id}',
+            f'name:\t{self.name}',
+            f'teammate:\t{self.teammate}',
+            f'rank:\t{self.rank}',
+            f'like:\t{self.like}',
+            f'weekly ranking:\t{self.weekly_ranking}',
+            f'weekly total:\t{self.weekly_total}'
+        ))
+
+    def initial(self, src):
+        soup = bs(src, 'html.parser')
+        self._play_data_date.value = soup.find('p', 'mypageDate').text.split('：')[1]
+        self._name.value = re.match(r'(.+)\sさん.*', soup.h2.text).group(1)
+        self._teammate.value = int(soup.find('a', 'btnD').find('strong').text)
+        self._id.value = int(soup.find('dl', 'idolDataId').find('dd').text)
+        self._rank.value = soup.find('dl', 'idolDataRank').find('dd').text
+        self._like.value = int(soup.find('dl', 'idolDataLike').dd.text)
+        self._weekly_ranking.value = int(soup.find('dl', 'idolDataStateRanking').find('dd').text[:-1])
+        self._weekly_total.value = int(soup.find('dl', 'idolDataLikeWeekRanking').find('dd').text[:-1])

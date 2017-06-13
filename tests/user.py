@@ -87,36 +87,39 @@ class IntTest(unittest.TestCase):
 
 
 class UserTest(unittest.TestCase):
+    def setUp(self):
+        self.src = '''
+        <p class="mypageDate">データ取得日：2017年10月1日</p>
+        <h2>ほげ さん!こんにちは</h2>
+        <a class="btnD"><strong>10</strong></a>
+        <dl class="idolDataId"><dd>100</dd></dl>
+        <dl class="idolDataRank"><dd>神アイドル</dd></dl>
+        <dl class="idolDataLike"><dd>400</dd></dl>
+        <dl class="idolDataStateRanking"><dd>79位</dd></dl>
+        <dl class="idolDataLikeWeekRanking"><dd>111位</dd></dl>
+        '''
+
     def _makeOne(self):
         from pripara.user import User
         return User()
 
-    def test_user_fields(self):
+    def test_initial(self):
         sbj = self._makeOne()
-        self.assertTrue(hasattr(sbj, 'play_data_date'))
-        self.assertTrue(isinstance(sbj.play_data_date, Datetime))
-        self.assertTrue(hasattr(sbj, 'name'))
-        self.assertTrue(isinstance(sbj.name, Str))
-        self.assertTrue(hasattr(sbj, 'teammate'))
-        self.assertTrue(isinstance(sbj.teammate, Int))
+        sbj.initial(self.src)
+        self.assertEqual(sbj.play_data_date, datetime(2017, 10, 1))
+        self.assertEqual(sbj.name, 'ほげ')
+        self.assertEqual(sbj.teammate, 10)
+        self.assertEqual(sbj.id, 100)
+        self.assertEqual(sbj.rank, '神アイドル')
+        self.assertEqual(sbj.like, 400)
+        self.assertEqual(sbj.weekly_ranking, 79)
+        self.assertEqual(sbj.weekly_total, 111)
 
-    def test_update_name(self):
+    def test_data_after_loading_data(self):
         sbj = self._makeOne()
-        v = 'hoge'
-        sbj.name = v
-        self.assertEqual(sbj.name, v)
-
-    def test_update_play_data_date(self):
-        sbj = self._makeOne()
-        v = '2017年12月31日'
-        sbj.play_data_date = v
-        self.assertEqual(sbj.play_data_date, v)
-
-    def test_update_teammate(self):
-        sbj = self._makeOne()
-        v = 100
-        sbj.teammate = v
-        self.assertEqual(sbj.teammate, v)
+        sbj.initial(self.src)
+        result = sbj.data().split('\n')
+        self.assertEqual(result[0], 'User data')
 
 
 if __name__ == '__main__':

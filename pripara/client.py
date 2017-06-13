@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
 import requests
-from bs4 import BeautifulSoup as bs
 
 from .user import User
 
@@ -78,8 +77,7 @@ class Client:
             'TTA_MGSID': re.search(r'TTA_MGSID=([a-z0-9]+)', set_cookie).group(1),
             'TTA_MGSID_AuthTicket': re.search(r'TTA_MGSID_AuthTicket=([a-z0-9]+)', set_cookie).group(1),
         })
-        soup = bs(response.text, 'html.parser')
-        self.user.name = re.match(r'(.+)\sさん.*', soup.h2.text).group(1)
+        self.user.initial(response.text)
         print(f'logged in as {self.user.name}.')
 
     @require_login
