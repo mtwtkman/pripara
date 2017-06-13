@@ -2,12 +2,6 @@
 import re
 from datetime import datetime
 
-from bs4 import BeautifulSoup as bs
-
-
-class RequiredDataTypeError(Exception):
-    pass
-
 
 class Field:
     _type = None
@@ -69,12 +63,3 @@ class User:
         if name in fields:
             return self.__dict__[name].value
         return self.__dict__[name]
-
-    def bs(self, name, src):
-        if name not in self._soup:
-            self._soup[name] = bs(src, 'html.parser')
-
-    def update(self, name, key):
-        if key == 'login':
-            value = re.match(r'(.+)\sさん.*', self._soup[name].h2.text).group(1)
-        setattr(self, name, value)

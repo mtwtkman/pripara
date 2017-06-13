@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 import requests
+from bs4 import BeautifulSoup as bs
 
 from .user import User
 
@@ -42,8 +43,8 @@ class Client:
 
     def __str__(self):
         if not self.meta.client.logged_in:
-            return f'<User: {NOT_LOGGED_IN}>'
-        return f'<User: You logged in as {self.name}.>'
+            return f'<Client: {NOT_LOGGED_IN}>'
+        return f'<Client: You logged in as {self.user.name}.>'
 
     def __init__(self, password, email):
         self.password = password
@@ -77,8 +78,8 @@ class Client:
             'TTA_MGSID': re.search(r'TTA_MGSID=([a-z0-9]+)', set_cookie).group(1),
             'TTA_MGSID_AuthTicket': re.search(r'TTA_MGSID_AuthTicket=([a-z0-9]+)', set_cookie).group(1),
         })
-        self.user.bs('login', response.text)
-        self.user.update('name', 'login')
+        soup = bs(response.text, 'html.parser')
+        self.user.name = re.match(r'(.+)\sさん.*', soup.h2.text).group(1)
         print(f'logged in as {self.user.name}.')
 
     @require_login
