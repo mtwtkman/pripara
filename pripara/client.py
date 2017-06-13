@@ -2,11 +2,12 @@
 import re
 import requests
 
-from .const import NOT_LOGGED_IN
+from .user import User
 
 
 HOST = 'https://pripara.jp/'
 UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+NOT_LOGGED_IN = 'You have not logged in yet.'
 
 
 class AbnormalResponse(Exception):
@@ -30,7 +31,7 @@ def valid_response(method):
     def wrapper(self, *args, **kwargs):
         response = method(self, *args, **kwargs)
         code = response.status_code
-        if code != 200:
+        if code > 300:
             raise AbnormalResponse(f'status code: {code}')
         return response
     return wrapper
@@ -39,6 +40,11 @@ def valid_response(method):
 class Client:
     headers = {'user-agent': UA}
 
+    def __str__(self):
+        if not self.meta.client.logged_in:
+            return f'<User: {NOT_LOGGED_IN}>'
+        return f'<User: You logged in as {self.name}.>'
+
     def __init__(self, password, email):
         self.password = password
         self.email = email
@@ -46,7 +52,7 @@ class Client:
             'TTA_MGSID': None,
             'TTA_MGSID_AuthTicket': None,
         }
-        self._user = None
+        self.user = User()
         self.logged_in = False
 
     @valid_response
@@ -71,8 +77,8 @@ class Client:
             'TTA_MGSID': re.search(r'TTA_MGSID=([a-z0-9]+)', set_cookie).group(1),
             'TTA_MGSID_AuthTicket': re.search(r'TTA_MGSID_AuthTicket=([a-z0-9]+)', set_cookie).group(1),
         })
-        print('login succeeded.')
-        return response
+        self.user.bs('login', response.text)
+        print(f'logged in as {self.user.name}.')
 
     @require_login
     def logout(self):
