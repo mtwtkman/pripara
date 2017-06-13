@@ -48,7 +48,7 @@ weekly total:   17968
 >>> cli.logout()
 ```
 
-Ok, you are so gread idol. Laala said...
+Ok, you are so great idol. Laala said...
 
 # Test
 `$ python -m unittest tests/*.py`
