@@ -41,7 +41,7 @@ class Client:
     headers = {'user-agent': UA}
 
     def __str__(self):
-        if not self.meta.client.logged_in:
+        if not self.logged_in:
             return f'<Client: {NOT_LOGGED_IN}>'
         return f'<Client: You logged in as {self.user.name}.>'
 
