@@ -4,6 +4,7 @@ import os
 import sys
 import json
 from getpass import getpass
+from collections import namedtuple
 
 import requests
 from bs4 import BeautifulSoup as bs
@@ -20,10 +21,12 @@ class ConfigNotFound(Exception):
 
 
 HOST = 'https://pripara.jp/'
+NOT_LOGGED_IN = 'You have not logged in yet.'
 
 
 class Config:
     file_name = 'conf.json'
+
     def __init__(self):
         self.password = None
         self.email = None
@@ -49,7 +52,10 @@ class Config:
             self.password = p
             self.email = e
             with open(self.file_name, 'w') as fp:
-                fp.write(json.dumps({'password': self.password, 'email': self.email}))
+                fp.write(json.dumps({
+                    'password': self.password,
+                    'email': self.email
+                }))
             print('Created a config file named "conf.json" to this directory.')
 
     def as_dict(self):
@@ -68,20 +74,20 @@ class User:
 
     def __init__(self):
         self.meta = self.Meta()
+        self.data = None
         self.name = None
 
     def __str__(self):
         if not self.meta.client.logged_in:
-            return '<User: You have not logged in yet.>'
-        return '<User: You logged in as {}.>'.format(self.name)
+            return f'<User: {NOT_LOGGED_IN}>'
+        return f'<User: You logged in as {self.name}.>'
 
-    def _set_data(self):
-        src = self.meta.src
+    def _mapping(self, src):
         self.name = re.match(r'(.+)\sさん.*', src.h2.text).group(1)
 
     def login(self):
         response = self.meta.client.login()
-        self._set_data(bs(response.text, 'html.parser'))
+        self._mapping(bs(response.text, 'html.parser'))
 
 
 class LoginFailedError(Exception):
@@ -115,6 +121,13 @@ class Client:
         })
         print('login succeeded.')
         return response
+
+    def logout(self):
+        if not self.logged_in:
+            print(NOT_LOGGED_IN)
+            return
+        url = f'{HOST}join/logout'
+        response = requests.get(url)
 
 
 def pri():
