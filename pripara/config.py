@@ -12,8 +12,8 @@ class Config:
     file_name = 'conf.json'
 
     def __init__(self):
-        self.password = None
         self.email = None
+        self.password = None
 
     def load(self):
         try:
@@ -21,15 +21,15 @@ class Config:
                 conf = json.loads(fp.read())
         except FileNotFoundError:
             conf = {
-                'password': os.getenv('PRIPARA_PASSWORD', None),
                 'email': os.getenv('PRIPARA_EMAIL', None),
+                'password': os.getenv('PRIPARA_PASSWORD', None),
             }
         self.password = conf['password']
         self.email = conf['email']
         while not all([self.password, self.email]):
             print('You must create a information to login. Please input.')
-            p = getpass('password >>>')
             e = input('email >>>')
+            p = getpass('password >>>')
             ok = input('ok?[y/N] >>>')
             if ok in ('no', 'N', 'No', 'NO'):
                 continue
@@ -37,13 +37,13 @@ class Config:
             self.email = e
             with open(self.file_name, 'w') as fp:
                 fp.write(json.dumps({
+                    'email': self.email,
                     'password': self.password,
-                    'email': self.email
                 }))
             print('Created a config file named "conf.json" to this directory.')
 
     def as_dict(self):
         return {
-            'password': self.password,
             'email': self.email,
+            'password': self.password,
         }
