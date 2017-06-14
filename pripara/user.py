@@ -68,7 +68,7 @@ class User:
         self._weekly_total = Int()
 
     def __str__(self):
-        return f'<User: id={self.id} name={self.name}'
+        return f'<User: id={self.id} name={self.name}>'
 
     def __getattribute__(self, name):
         if name in object.__getattribute__(self, 'fields'):

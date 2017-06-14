@@ -133,7 +133,7 @@ class UserTest(unittest.TestCase):
         sbj = self._makeOne()
         sbj.initial(self.src)
         result = sbj.__str__()
-        self.assertEqual(result, '<User: id=100 name=ほげ')
+        self.assertEqual(result, '<User: id=100 name=ほげ>')
 
 
 if __name__ == '__main__':
