@@ -71,8 +71,7 @@ class Client:
         return requests.post(
             self.url,
             data=data,
-            headers=self.headers,
-            cookies=self.cookies
+            headers=self.headers
         )
 
     def login(self):
@@ -85,7 +84,7 @@ class Client:
             raise LoginFailedError('You need to ensure the email and password are correct.')
         self.logged_in = True
         set_cookie = response.headers['Set-Cookie']
-        self.session.update({
+        self.cookies.update({
             'TTA_MGSID': re.search(r'TTA_MGSID=([a-z0-9]+)', set_cookie).group(1),
             'TTA_MGSID_AuthTicket': re.search(r'TTA_MGSID_AuthTicket=([a-z0-9]+)', set_cookie).group(1),
         })
@@ -100,13 +99,12 @@ class Client:
             c = {'href': x.a['href'], 'title': x.a.text, 'fetched': False}
             self.closets.append(c)
             def _fetch(self):
-                self.url = href
+                self.url = c['href']
                 response = self.get()
                 c['fetched'] = True
                 self.user.set_closet(bs(response.text, 'html.parser'), c)
                 return response
-
-            setattr(self, f'live_{c["href"].split("=")[1]}', _fetch)
+            setattr(self.__class__, f'live_{c["href"].split("=")[1]}', _fetch)
 
     @require_login
     def logout(self):
