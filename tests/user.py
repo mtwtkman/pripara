@@ -118,7 +118,7 @@ class UserTest(unittest.TestCase):
     def test_data_after_loading_data(self):
         sbj = self._makeOne()
         sbj.initial(self.src)
-        result = sbj.data().split('\n')
+        result = sbj.data.split('\n')
         self.assertEqual(result[0], 'User data')
         self.assertEqual(result[1], '-- As of 2017/10/01 --')
         self.assertEqual(result[2], 'id:\t100')
@@ -134,6 +134,12 @@ class UserTest(unittest.TestCase):
         sbj.initial(self.src)
         result = sbj.__str__()
         self.assertEqual(result, '<User: id=100 name=ほげ>')
+
+    def test_call(self):
+        sbj = self._makeOne()
+        sbj.initial(self.src)
+        result = sbj.data
+        self.assertEqual(sbj(), result)
 
 
 if __name__ == '__main__':

@@ -64,6 +64,7 @@ class User:
     field_names = [x[0] for x in fields]
 
     def __init__(self):
+        self._data = None
         for field, T in self.fields:
             setattr(self, f'_{field}', T())
 
@@ -75,18 +76,24 @@ class User:
             return object.__getattribute__(self, f'_{name}').value
         return object.__getattribute__(self, name)
 
+    @property
     def data(self):
-        return '\n'.join((
-            'User data',
-            f'-- As of {self.play_data_date.strftime("%Y/%m/%d")} --',
-            f'id:\t{self.id}',
-            f'name:\t{self.name}',
-            f'teammate:\t{self.teammate}',
-            f'rank:\t{self.rank}',
-            f'like:\t{self.like}',
-            f'weekly ranking:\t{self.weekly_ranking}',
-            f'weekly total:\t{self.weekly_total}'
-        ))
+        if not self._data:
+            self._data = '\n'.join((
+                'User data',
+                f'-- As of {self.play_data_date.strftime("%Y/%m/%d")} --',
+                f'id:\t{self.id}',
+                f'name:\t{self.name}',
+                f'teammate:\t{self.teammate}',
+                f'rank:\t{self.rank}',
+                f'like:\t{self.like}',
+                f'weekly ranking:\t{self.weekly_ranking}',
+                f'weekly total:\t{self.weekly_total}'
+            ))
+        return self._data
+
+    def __call__(self):
+        return self.data
 
     def initial(self, src):
         soup = bs(src, 'html.parser')

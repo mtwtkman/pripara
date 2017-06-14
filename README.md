@@ -35,7 +35,7 @@ This script exposes `Config`, `Client`, `User`. Mainly needed is `Client`.
 >>> conf.load()
 >>> cli = client.Client(**conf.as_dict())
 >>> cli.login()
->>> cli.user.data()
+>>> cli.user.data
 User data
 -- As of 2017/06/13 --
 id:     00000000000
