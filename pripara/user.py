@@ -52,26 +52,26 @@ class Int(Field):
 
 class User:
     fields = (
-        'play_data_date', 'name', 'teammate',
-        'id', 'rank', 'like', 'weekly_ranking',
-        'weekly_total'
+        ('play_data_date', Datetime),
+        ('name', Str),
+        ('teammate', Int),
+        ('id', Int),
+        ('rank', Str),
+        ('like', Int),
+        ('weekly_ranking', Int),
+        ('weekly_total', Int),
     )
+    field_names = [x[0] for x in fields]
 
     def __init__(self):
-        self._play_data_date = Datetime()
-        self._name = Str()
-        self._teammate = Int()
-        self._id = Int()
-        self._rank = Str()
-        self._like = Int()
-        self._weekly_ranking = Int()
-        self._weekly_total = Int()
+        for field, T in self.fields:
+            setattr(self, f'_{field}', T())
 
     def __str__(self):
         return f'<User: id={self.id} name={self.name}>'
 
     def __getattribute__(self, name):
-        if name in object.__getattribute__(self, 'fields'):
+        if name in object.__getattribute__(self, 'field_names'):
             return object.__getattribute__(self, f'_{name}').value
         return object.__getattribute__(self, name)
 
