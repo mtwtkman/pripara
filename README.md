@@ -3,7 +3,7 @@
 > じゃあ大丈夫ぷり!
 
 # pripara
-This is a client for [priparaclub](https://pripara.jp/) implemented by python.
+This is a client for [priparaclub](https://pripara.jp/join/login) implemented by python.
 
 You know Laala said, "Everyone are friend, everyone are idol.". I think so.
 
