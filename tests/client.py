@@ -4,7 +4,41 @@ import unittest
 from io import StringIO
 from collections import namedtuple
 
+from bs4 import BeautifulSoup as bs
+
 from pripara.client import NOT_LOGGED_IN, AbnormalResponse
+
+
+class ClientTestMixin:
+    def _makeOne(self, email=None, password=None):
+        from pripara.client import Client
+        return Client(email, password)
+
+
+class ClientClosetMethodTest(ClientTestMixin, unittest.TestCase):
+    def setUp(self):
+        self.tags = [201701, 201601, 201501]
+        self.htmls = [
+            f'<li class="no{y}"><a href="url?live={y}">test{i}</a></li>'
+            for i, y in enumerate(self.tags)
+        ]
+        self.src = bs(''.join(self.htmls), 'html.parser')
+
+    def _callFUT(self):
+        ins = self._makeOne()
+        ins._closet(self.src)
+        return ins
+
+    def test(self):
+        sbj = self._callFUT()
+        self.assertEqual(len(sbj.closets), len(self.htmls))
+        expects = [
+            {'href': f'url?live={x}', 'title': f'test{i}', 'fetched': False} for i, x in enumerate(self.tags)
+        ]
+        for i, e in enumerate(expects):
+            with self.subTest(e=e):
+                self.assertEqual(e, sbj.closets[i])
+                self.assertTrue(hasattr(sbj, f'live_{self.tags[i]}'))
 
 
 class DecoratorTestMixin:
@@ -42,7 +76,7 @@ class RequireLoginDecoratorTest(DecoratorTestMixin, unittest.TestCase):
         self.assertEqual(response, return_value)
 
 
-class ValidResponseTest(DecoratorTestMixin, unittest.TestCase):
+class ValidResponseDecoratorTest(DecoratorTestMixin, unittest.TestCase):
     def _callFUT(self, method):
         from pripara.client import valid_response
         return valid_response(method)

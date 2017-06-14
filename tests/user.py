@@ -2,6 +2,7 @@
 import unittest
 from datetime import datetime
 
+from bs4 import BeautifulSoup as bs
 
 from pripara.user import Datetime, Str, Int
 
@@ -75,10 +76,16 @@ class IntTest(unittest.TestCase):
         sbj.value = v
         self.assertEqual(sbj.value, v)
 
-    def test_raise_with_not_int(self):
+    def test_raise_with_not_digit_str(self):
         sbj = self._makeOne()
         with self.assertRaises(TypeError):
             sbj.value = 'hoge'
+
+    def test_with_digit_str(self):
+        sbj = self._makeOne()
+        v = '10'
+        sbj.value = v
+        self.assertEqual(sbj.value, int(v))
 
     def test_raise_with_none(self):
         sbj = self._makeOne()
@@ -88,16 +95,16 @@ class IntTest(unittest.TestCase):
 
 class UserTest(unittest.TestCase):
     def setUp(self):
-        self.src = '''
-        <p class="mypageDate">データ取得日：2017年10月1日</p>
-        <h2>ほげ さん!こんにちは</h2>
-        <a class="btnD"><strong>10</strong></a>
-        <dl class="idolDataId"><dd>100</dd></dl>
-        <dl class="idolDataRank"><dd>神アイドル</dd></dl>
-        <dl class="idolDataLike"><dd>400</dd></dl>
-        <dl class="idolDataStateRanking"><dd>79位</dd></dl>
-        <dl class="idolDataLikeWeekRanking"><dd>111位</dd></dl>
-        '''
+        self.src = bs('''
+            <p class="mypageDate">データ取得日：2017年10月1日</p>
+            <h2>ほげ さん!こんにちは</h2>
+            <a class="btnD"><strong>10</strong></a>
+            <dl class="idolDataId"><dd>100</dd></dl>
+            <dl class="idolDataRank"><dd>神アイドル</dd></dl>
+            <dl class="idolDataLike"><dd>400</dd></dl>
+            <dl class="idolDataStateRanking"><dd>79位</dd></dl>
+            <dl class="idolDataLikeWeekRanking"><dd>111位</dd></dl>
+        ''', 'html.parser')
 
     def _makeOne(self):
         from pripara.user import User

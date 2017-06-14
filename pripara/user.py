@@ -2,8 +2,6 @@
 import re
 from datetime import datetime
 
-from bs4 import BeautifulSoup as bs
-
 
 class Field:
     _type = None
@@ -42,9 +40,20 @@ class Str(Field):
 
 
 class Int(Field):
-    _type = int
+    _type = (int, str)
     default = 0
     allow_none = False
+
+    def _clean(self, value):
+        if isinstance(value, str):
+            if not value.isdigit():
+                raise TypeError
+            value = int(value)
+        return value
+
+
+class List(Field):
+    _type = list
 
     def _clean(self, value):
         return value
@@ -60,6 +69,7 @@ class User:
         ('like', Int),
         ('weekly_ranking', Int),
         ('weekly_total', Int),
+        ('closets', List),
     )
     field_names = [x[0] for x in fields]
 
@@ -96,12 +106,11 @@ class User:
         return self.data
 
     def initial(self, src):
-        soup = bs(src, 'html.parser')
-        self._play_data_date.value = soup.find('p', 'mypageDate').text.split('：')[1]
-        self._name.value = re.match(r'(.+)\sさん.*', soup.h2.text).group(1)
-        self._teammate.value = int(soup.find('a', 'btnD').find('strong').text)
-        self._id.value = int(soup.find('dl', 'idolDataId').find('dd').text)
-        self._rank.value = soup.find('dl', 'idolDataRank').find('dd').text
-        self._like.value = int(soup.find('dl', 'idolDataLike').dd.text)
-        self._weekly_ranking.value = int(soup.find('dl', 'idolDataStateRanking').find('dd').text[:-1])
-        self._weekly_total.value = int(soup.find('dl', 'idolDataLikeWeekRanking').find('dd').text[:-1])
+        self._play_data_date.value = src.find('p', 'mypageDate').text.split('：')[1]
+        self._name.value = re.match(r'(.+)\sさん.*', src.h2.text).group(1)
+        self._teammate.value = src.find('a', 'btnD').find('strong').text
+        self._id.value = src.find('dl', 'idolDataId').find('dd').text
+        self._rank.value = src.find('dl', 'idolDataRank').find('dd').text
+        self._like.value = src.find('dl', 'idolDataLike').dd.text
+        self._weekly_ranking.value = src.find('dl', 'idolDataStateRanking').find('dd').text[:-1]
+        self._weekly_total.value = src.find('dl', 'idolDataLikeWeekRanking').find('dd').text[:-1]

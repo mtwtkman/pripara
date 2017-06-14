@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import re
+
 import requests
+from bs4 import BeautifulSoup as bs
 
 from .user import User
 
@@ -45,10 +47,10 @@ class Client:
             return f'<Client: {NOT_LOGGED_IN}>'
         return f'<Client: You logged in as {self.user.name}.>'
 
-    def __init__(self, password, email):
-        self.password = password
+    def __init__(self, email, password):
         self.email = email
-        self.session = {
+        self.password = password
+        self.cookies = {
             'TTA_MGSID': None,
             'TTA_MGSID_AuthTicket': None,
         }
@@ -57,11 +59,21 @@ class Client:
 
     @valid_response
     def get(self, params=None):
-        return requests.get(self.url, params=params, headers=self.headers)
+        return requests.get(
+            self.url,
+            params=params,
+            headers=self.headers,
+            cookies=self.cookies
+        )
 
     @valid_response
     def post(self, data=None):
-        return requests.post(self.url, data=data, headers=self.headers)
+        return requests.post(
+            self.url,
+            data=data,
+            headers=self.headers,
+            cookies=self.cookies
+        )
 
     def login(self):
         self.url = f'{HOST}join/login'
@@ -77,8 +89,24 @@ class Client:
             'TTA_MGSID': re.search(r'TTA_MGSID=([a-z0-9]+)', set_cookie).group(1),
             'TTA_MGSID_AuthTicket': re.search(r'TTA_MGSID_AuthTicket=([a-z0-9]+)', set_cookie).group(1),
         })
-        self.user.initial(response.text)
+        src = bs(response.text, 'html.parser')
+        self.user.initial(src)
+        self._closet(src)
         print(f'logged in as {self.user.name}.')
+
+    def _closet(self, src):
+        self.closets = []
+        for x in src.find_all('li', re.compile(r'no\d{6}')):
+            c = {'href': x.a['href'], 'title': x.a.text, 'fetched': False}
+            self.closets.append(c)
+            def _fetch(self):
+                self.url = href
+                response = self.get()
+                c['fetched'] = True
+                self.user.set_closet(bs(response.text, 'html.parser'), c)
+                return response
+
+            setattr(self, f'live_{c["href"].split("=")[1]}', _fetch)
 
     @require_login
     def logout(self):
