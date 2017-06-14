@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup as bs
 from .user import User
 
 
-HOST = 'https://pripara.jp/'
+HOST = 'https://pripara.jp'
 UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
 NOT_LOGGED_IN = 'You have not logged in yet.'
 
@@ -75,7 +75,7 @@ class Client:
         )
 
     def login(self):
-        self.url = f'{HOST}join/login'
+        self.url = f'{HOST}/join/login'
         response = self.post({
             'password': self.password,
             'mail_address': self.email,
@@ -99,7 +99,7 @@ class Client:
             c = {'href': x.a['href'], 'title': x.a.text, 'fetched': False}
             self.closets.append(c)
             def _fetch(self):
-                self.url = c['href']
+                self.url = f'{HOST}{c["href"]}'
                 response = self.get()
                 c['fetched'] = True
                 self.user.set_closet(bs(response.text, 'html.parser'), c)
@@ -108,7 +108,7 @@ class Client:
 
     @require_login
     def logout(self):
-        self.url = f'{HOST}join/logout'
+        self.url = f'{HOST}/join/logout'
         return self.get()
 
     @require_login
