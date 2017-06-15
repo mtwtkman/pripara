@@ -100,19 +100,30 @@ class Client:
             'weekly_total': src.find('dl', 'idolDataLikeWeekRanking').find('dd').text[:-1],
         }
 
+    def _closet_one_factory(self, closet):
+        def fetch(self):
+            self.url = f'{HOST}{c["href"]}'
+            response = self.get()
+            closet['fetched'] = True
+            src = list(bs(response.text, 'html.parser').find('p', 'charText').children)[2:]
+            name, count = src[0].text.split('：')
+            return {
+                'name': re.match(r'^★(.+)(?=のアイテム数$)', name).group(1),
+                'count': int(count),
+                'total': int(src[1]),
+            }
+        return fetch
+
     def _closet(self, src):
         self.closets = []
         for x in src.find_all('li', re.compile(r'no\d{6}')):
             c = {'href': x.a['href'], 'title': x.a.text, 'fetched': False}
             self.closets.append(c)
-            def _fetch(self):
-                self.url = f'{HOST}{c["href"]}'
-                response = self.get()
-                c['fetched'] = True
-                src = response.txt
-                return {
-                }
-            setattr(self.__class__, f'live_{c["href"].split("=")[1]}', _fetch)
+            setattr(
+                self.__class__,
+                f'live_{c["href"].split("=")[1]}',
+                self._closet_one_factory(c)
+            )
 
     @require_login
     def logout(self):
