@@ -4,8 +4,6 @@ import re
 import requests
 from bs4 import BeautifulSoup as bs
 
-from .user import User
-
 
 HOST = 'https://pripara.jp'
 UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
@@ -33,7 +31,7 @@ def valid_response(method):
     def wrapper(self, *args, **kwargs):
         response = method(self, *args, **kwargs)
         code = response.status_code
-        if code > 300:
+        if code >= 400:
             raise AbnormalResponse(f'status code: {code}')
         return response
     return wrapper
@@ -45,16 +43,16 @@ class Client:
     def __str__(self):
         if not self.logged_in:
             return f'<Client: {NOT_LOGGED_IN}>'
-        return f'<Client: You logged in as {self.user.name}.>'
+        return f'<Client: You logged in as {self.username}.>'
 
     def __init__(self, email, password):
         self.email = email
         self.password = password
+        self.username = None
         self.cookies = {
             'TTA_MGSID': None,
             'TTA_MGSID_AuthTicket': None,
         }
-        self.user = User()
         self.logged_in = False
 
     @valid_response
@@ -89,9 +87,18 @@ class Client:
             'TTA_MGSID_AuthTicket': re.search(r'TTA_MGSID_AuthTicket=([a-z0-9]+)', set_cookie).group(1),
         })
         src = bs(response.text, 'html.parser')
-        self.user.initial(src)
         self._closet(src)
-        print(f'logged in as {self.user.name}.')
+        self.username = re.match(r'(.+)\sさん.*', src.h2.text).group(1)
+        return {
+            'play_data_date': src.find('p', 'mypageDate').text.split('：')[1],
+            'name': self.username,
+            'teammate': src.find('a', 'btnD').find('strong').text,
+            'id': src.find('dl', 'idolDataId').find('dd').text,
+            'rank': src.find('dl', 'idolDataRank').find('dd').text,
+            'like': src.find('dl', 'idolDataLike').dd.text,
+            'weekly_ranking': src.find('dl', 'idolDataStateRanking').find('dd').text[:-1],
+            'weekly_total': src.find('dl', 'idolDataLikeWeekRanking').find('dd').text[:-1],
+        }
 
     def _closet(self, src):
         self.closets = []
@@ -102,8 +109,9 @@ class Client:
                 self.url = f'{HOST}{c["href"]}'
                 response = self.get()
                 c['fetched'] = True
-                self.user.set_closet(bs(response.text, 'html.parser'), c)
-                return response
+                src = response.txt
+                return {
+                }
             setattr(self.__class__, f'live_{c["href"].split("=")[1]}', _fetch)
 
     @require_login

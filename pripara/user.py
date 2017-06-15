@@ -2,6 +2,9 @@
 import re
 from datetime import datetime
 
+from .client import Client, NOT_LOGGED_IN
+from .config import Config
+
 
 class Field:
     _type = None
@@ -69,12 +72,14 @@ class User:
         ('like', Int),
         ('weekly_ranking', Int),
         ('weekly_total', Int),
-        ('closets', List),
     )
     field_names = [x[0] for x in fields]
 
     def __init__(self):
-        self._data = None
+        self._info = None
+        config = Config()
+        config.load()
+        self.client = Client(**config.as_dict())
         for field, T in self.fields:
             setattr(self, f'_{field}', T())
 
@@ -86,10 +91,22 @@ class User:
             return object.__getattribute__(self, f'_{name}').value
         return object.__getattribute__(self, name)
 
+    def login(self):
+        response = self.client.login()
+        for k, v in response.items():
+            getattr(self, f'_{k}').value = v
+        print(f'Logged in as {self.name}')
+
+    def as_dict(self):
+        return {f: getattr(self, f) for f in self.field_names}
+
     @property
-    def data(self):
-        if not self._data:
-            self._data = '\n'.join((
+    def info(self):
+        if not self.client.logged_in:
+            print(NOT_LOGGED_IN)
+            return
+        elif not self._info:
+            self._info = '\n'.join((
                 'User data',
                 f'-- As of {self.play_data_date.strftime("%Y/%m/%d")} --',
                 f'id:\t{self.id}',
@@ -100,17 +117,4 @@ class User:
                 f'weekly ranking:\t{self.weekly_ranking}',
                 f'weekly total:\t{self.weekly_total}'
             ))
-        return self._data
-
-    def __call__(self):
-        return self.data
-
-    def initial(self, src):
-        self._play_data_date.value = src.find('p', 'mypageDate').text.split('：')[1]
-        self._name.value = re.match(r'(.+)\sさん.*', src.h2.text).group(1)
-        self._teammate.value = src.find('a', 'btnD').find('strong').text
-        self._id.value = src.find('dl', 'idolDataId').find('dd').text
-        self._rank.value = src.find('dl', 'idolDataRank').find('dd').text
-        self._like.value = src.find('dl', 'idolDataLike').dd.text
-        self._weekly_ranking.value = src.find('dl', 'idolDataStateRanking').find('dd').text[:-1]
-        self._weekly_total.value = src.find('dl', 'idolDataLikeWeekRanking').find('dd').text[:-1]
+        print(self._info)

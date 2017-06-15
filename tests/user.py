@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+import sys
 import unittest
+from io import StringIO
+from unittest import mock
 from datetime import datetime
 
-from bs4 import BeautifulSoup as bs
-
-from pripara.user import Datetime, Str, Int
+from pripara.user import Datetime, Str, Int, NOT_LOGGED_IN
 
 
 class DatetimeTest(unittest.TestCase):
@@ -95,59 +96,87 @@ class IntTest(unittest.TestCase):
 
 class UserTest(unittest.TestCase):
     def setUp(self):
-        self.src = bs('''
-            <p class="mypageDate">データ取得日：2017年10月1日</p>
-            <h2>ほげ さん!こんにちは</h2>
-            <a class="btnD"><strong>10</strong></a>
-            <dl class="idolDataId"><dd>100</dd></dl>
-            <dl class="idolDataRank"><dd>神アイドル</dd></dl>
-            <dl class="idolDataLike"><dd>400</dd></dl>
-            <dl class="idolDataStateRanking"><dd>79位</dd></dl>
-            <dl class="idolDataLikeWeekRanking"><dd>111位</dd></dl>
-        ''', 'html.parser')
+        self.capture = StringIO()
+        sys.stdout = self.capture
+        self.email = 'mirei@pripara.com'
+        self.password = 'puri'
+        self.login_response = {
+            'play_data_date': '2017年10月1日',
+            'name': 'みれぃ',
+            'teammate': 100,
+            'id': 3,
+            'rank': '神アイドル',
+            'like': 1000000,
+            'weekly_ranking': 1,
+            'weekly_total': 1,
+        }
 
-    def _makeOne(self):
-        from pripara.user import User
-        return User()
+    def tearDown(self):
+        sys.stdout = sys.__stdout__
 
-    def test_initial(self):
+    def _makeOne(self, logged_in=False):
+        with mock.patch('pripara.user.Config') as ConfigMock, \
+             mock.patch('pripara.user.Client') as ClientMock:
+            ConfigMock().load = mock.Mock(return_value=None)
+            ConfigMock().as_dict = mock.Mock(return_value={
+                'email': self.email,
+                'password': self.password,
+            })
+            ClientMock().login = mock.Mock(return_value=self.login_response)
+            ClientMock().logged_in = mock.Mock(return_value=logged_in)()
+            from pripara.user import User
+            return User()
+
+    def test_init(self):
         sbj = self._makeOne()
-        sbj.initial(self.src)
-        self.assertEqual(sbj.play_data_date, datetime(2017, 10, 1))
-        self.assertEqual(sbj.name, 'ほげ')
-        self.assertEqual(sbj.teammate, 10)
-        self.assertEqual(sbj.id, 100)
-        self.assertEqual(sbj.rank, '神アイドル')
-        self.assertEqual(sbj.like, 400)
-        self.assertEqual(sbj.weekly_ranking, 79)
-        self.assertEqual(sbj.weekly_total, 111)
+        for f in sbj.field_names:
+            with self.subTest(f=f):
+                self.assertTrue(hasattr(sbj, f'_{f}'))
 
-    def test_data_after_loading_data(self):
+    def test_login(self):
+        sbj = self._makeOne(logged_in=True)
+        sbj.login()
+        for k, v in self.login_response.items():
+            with self.subTest(k=k):
+                if k == 'play_data_date':
+                    self.assertEqual(getattr(sbj, k), datetime.strptime(v, '%Y年%m月%d日'))
+                    continue
+                self.assertEqual(getattr(sbj, k), v)
+
+    def test_as_dict_before_login(self):
         sbj = self._makeOne()
-        sbj.initial(self.src)
-        result = sbj.data.split('\n')
+        for field, T in sbj.fields:
+            with self.subTest(field=field, T=T):
+                self.assertEqual(getattr(sbj, field), T.default)
+
+    def test_as_dict_after_login(self):
+        sbj = self._makeOne(logged_in=True)
+        sbj.login()
+        expect = self.login_response.copy()
+        expect['play_data_date'] = datetime.strptime(self.login_response['play_data_date'], '%Y年%m月%d日')
+        self.assertEqual(sbj.as_dict(), expect)
+
+    def test_info_before_login(self):
+        sbj = self._makeOne()
+        sbj.info
+        self.assertEqual(self.capture.getvalue(), f'{NOT_LOGGED_IN}\n')
+
+    def test_info_after_login(self):
+        sbj = self._makeOne(logged_in=True)
+        sbj.login()
+        self.capture.seek(0)
+        self.capture.write('')
+        sbj.info
+        result = self.capture.getvalue().split('\n')
         self.assertEqual(result[0], 'User data')
-        self.assertEqual(result[1], '-- As of 2017/10/01 --')
-        self.assertEqual(result[2], 'id:\t100')
-        self.assertEqual(result[3], 'name:\tほげ')
-        self.assertEqual(result[4], 'teammate:\t10')
-        self.assertEqual(result[5], 'rank:\t神アイドル')
-        self.assertEqual(result[6], 'like:\t400')
-        self.assertEqual(result[7], 'weekly ranking:\t79')
-        self.assertEqual(result[8], 'weekly total:\t111')
-
-    def test_print_after_loading_data(self):
-        sbj = self._makeOne()
-        sbj.initial(self.src)
-        result = sbj.__str__()
-        self.assertEqual(result, '<User: id=100 name=ほげ>')
-
-    def test_call(self):
-        sbj = self._makeOne()
-        sbj.initial(self.src)
-        result = sbj.data
-        self.assertEqual(sbj(), result)
-
+        self.assertEqual(result[1], f'-- As of {sbj.play_data_date.strftime("%Y/%m/%d")} --')
+        self.assertEqual(result[2], f'id:\t{sbj.id}')
+        self.assertEqual(result[3], f'name:\t{sbj.name}')
+        self.assertEqual(result[4], f'teammate:\t{sbj.teammate}')
+        self.assertEqual(result[5], f'rank:\t{sbj.rank}')
+        self.assertEqual(result[6], f'like:\t{sbj.like}')
+        self.assertEqual(result[7], f'weekly ranking:\t{sbj.weekly_ranking}')
+        self.assertEqual(result[8], f'weekly total:\t{sbj.weekly_total}')
 
 if __name__ == '__main__':
     unittest.main()
