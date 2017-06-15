@@ -5,7 +5,7 @@
 # pripara
 This is a client for [priparaclub](https://pripara.jp/join/login) implemented by python.
 
-You know Laala said, "Everyone are friend, everyone are idol.". I think so.
+You know Laala said "Everyone are friend, everyone are idol.". I think so.
 
 # Requirements
 - python3.6+
@@ -25,9 +25,9 @@ $ pip install -r requirements.txt
 Done✨
 
 # Usage
-This script exposes `Config`, `Client`, `User`. Mainly needed is `Client`.
+This script exposes APIs which are `Config`, `Client` and `User`. Mainly you need is `Client`.
 
-`Client` needs `email` and `password` to login. `Config` helps store there.
+`Client` needs `email` and `password` to login. `Config` helps storing there.
 
 ```sh
 >>> from pripara import config, client
