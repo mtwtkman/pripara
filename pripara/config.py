@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import re
 import os
 import json
 from getpass import getpass
@@ -15,23 +16,26 @@ class Config:
         self.email = None
         self.password = None
 
-    def load(self):
+    def _read(self):
         try:
             with open(self.file_name) as fp:
-                conf = json.loads(fp.read())
+                data = json.loads(fp.read())
         except FileNotFoundError:
-            conf = {
+            data = {
                 'email': os.getenv('PRIPARA_EMAIL', None),
                 'password': os.getenv('PRIPARA_PASSWORD', None),
             }
-        self.password = conf['password']
-        self.email = conf['email']
+        self.password = data['password']
+        self.email = data['email']
+
+    def load(self):
+        self._read()
         while not all([self.password, self.email]):
             print('You must create a information to login. Please input.')
-            e = input('email >>>')
-            p = getpass('password >>>')
-            ok = input('ok?[y/N] >>>')
-            if ok in ('no', 'N', 'No', 'NO'):
+            e = input('email >>> ')
+            p = getpass('password >>> ')
+            ok = input('ok?[y/N] >>> ')
+            if ok != 'y':
                 continue
             self.password = p
             self.email = e

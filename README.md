@@ -51,4 +51,4 @@ weekly total:   17968
 Ok, you are so great idol. Laala said...
 
 # Test
-`$ python -m unittest tests/*.py`
+`$ python -m unittest tests`
