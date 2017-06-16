@@ -25,27 +25,81 @@ $ pip install -r requirements.txt
 Done✨
 
 # Usage
-This script exposes APIs which are `Config`, `Client` and `User`. Mainly you need is `Client`.
+This script exposes APIs which are `Config`, `Client` and `User`. Mainly you need is `User`.
 
-`Client` needs `email` and `password` to login. `Config` helps storing there.
+- `Config` helps you to store login data.
+- `Client` helps you to fetch data from priparaclub.
+- `User` helps you to store fetched data and show them.
+
+## How to login and logout
+At first you must login every running this script.
 
 ```sh
 >>> from pripara.user import User
 >>> user = User()
 >>> user.login()
->>> user.info
--- As of 2017/06/13 --
-id:     00000000000
-name:   ほげ
-teammate:       0
-rank:   ピカピカけんきゅうせい
-like:   23916
-weekly ranking: 26155
-weekly total:   17968
->>> cli.logout()
 ```
 
 Ok, you are so great idol. Laala said...
+
+And if you want to login
+```sh
+>>> user.logout()
+```
+
+## How to reference user data
+After you logged in, you can reference already basic user data.
+
+```sh
+>>> user.info
+User data
+-- As of 2017/06/16 --
+id:     XXXXXXXXXXX
+name:   パル
+teammate:       1
+rank:   がんばりけんきゅうせい
+like:   77236
+weekly ranking: 8287
+weekly total:   4145
+```
+
+And you can access each data via `User` object.
+
+```sh
+>>> user.id
+>>> user.name
+>>> user.teammate
+...
+```
+
+All of them are listed at `User.field_names`. Check this out.
+
+## How to fetch team data
+```sh
+>>> user.team()
+>>> user.team_total()
+```
+
+Do you want to check team data? You can.
+
+```sh
+>>> user.team_data
+```
+
+## How to fetch closet data
+After you logged in, you can reference closet data.
+
+```sh
+>>> user.closets
+```
+
+If you want to fetch data of 'タイム2弾'.
+
+```sh
+>>> user.closets[0].fetch()
+```
+
+Ok. Fine.
 
 # Test
 `$ python -m unittest tests`
