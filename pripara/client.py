@@ -5,6 +5,9 @@ import requests
 from bs4 import BeautifulSoup as bs
 
 
+__all__ = ['NOT_LOGGED_IN', 'Client']
+
+
 HOST = 'https://pripara.jp'
 UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
 NOT_LOGGED_IN = 'You have not logged in yet.'
@@ -37,6 +40,9 @@ def valid_response(method):
     return wrapper
 
 
+class Closet(dict): pass
+
+
 class Client:
     headers = {'user-agent': UA}
 
@@ -47,6 +53,7 @@ class Client:
 
     def __init__(self, email, password):
         self.email = email
+        self.closets = []
         self.password = password
         self.username = None
         self.cookies = {
@@ -107,13 +114,13 @@ class Client:
             if not closet['fetched']:
                 response = self.get(f'{HOST}{href}')
                 closet['fetched'] = True
-            src = list(bs(response.text, 'html.parser').find('p', 'charText').children)[2:]
-            name, count = src[0].text.split('：')
-            closet['data'] = {
-                'name': re.match(r'^★(.+)(?=のアイテム数$)', name).group(1),
-                'count': int(count),
-                'total': int(src[1][1:]),
-            }
+                src = list(bs(response.text, 'html.parser').find('p', 'charText').children)[2:]
+                name, count = src[0].text.split('：')
+                closet['data'] = {
+                    'name': re.match(r'^★(.+)(?=のアイテム数$)', name).group(1),
+                    'count': int(count),
+                    'total': int(src[1][1:]),
+                }
             return {
                 'name': closet['title'],
                 'data': closet['data'],
@@ -121,16 +128,17 @@ class Client:
         return fetch
 
     def _closet(self, src):
-        self.closets = []
         for x in src.find_all('li', re.compile(r'no\d{6}')):
             href = x.a['href']
-            c = {'title': x.a.text, 'fetched': False, 'data': None}
+            method_name = f'live_{href.split("=")[1]}'
+            c = Closet({'title': x.a.text, 'fetched': False, 'data': None})
             self.closets.append(c)
             setattr(
                 self.__class__,
-                f'live_{href.split("=")[1]}',
+                method_name,
                 self._closet_method_factory(c, href)
             )
+            c.fetch = getattr(self, method_name)
 
     @require_login
     def logout(self):

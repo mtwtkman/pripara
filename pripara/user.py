@@ -82,6 +82,10 @@ class User:
         self.client = Client(**config.as_dict())
         for field, T in self.fields:
             setattr(self, f'_{field}', T())
+        self.team_data = {
+            'weekly': None,
+            'total': None,
+        }
 
     def __str__(self):
         return f'<User: id={self.id} name={self.name}>'
@@ -105,6 +109,10 @@ class User:
         return {f: getattr(self, f) for f in self.field_names}
 
     @property
+    def closets(self):
+        return self.client.closets
+
+    @property
     def info(self):
         if not self.client.logged_in:
             print(NOT_LOGGED_IN)
@@ -122,3 +130,9 @@ class User:
                 f'weekly total:\t{self.weekly_total}'
             ))
         print(self._info)
+
+    def team(self):
+        self.team_data['weekly'] = self.client.team()
+
+    def team_total(self):
+        self.team_data['total'] = self.client.team_total()
