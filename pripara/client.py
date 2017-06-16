@@ -102,28 +102,34 @@ class Client:
             'weekly_total': src.find('dl', 'idolDataLikeWeekRanking').find('dd').text[:-1],
         }
 
-    def _closet_method_factory(self, closet):
+    def _closet_method_factory(self, closet, href):
         def fetch(self):
-            response = self.get(f'{HOST}{c["href"]}')
-            closet['fetched'] = True
+            if not closet['fetched']:
+                response = self.get(f'{HOST}{href}')
+                closet['fetched'] = True
             src = list(bs(response.text, 'html.parser').find('p', 'charText').children)[2:]
             name, count = src[0].text.split('：')
-            return {
+            closet['data'] = {
                 'name': re.match(r'^★(.+)(?=のアイテム数$)', name).group(1),
                 'count': int(count),
-                'total': int(src[1]),
+                'total': int(src[1][1:]),
+            }
+            return {
+                'name': closet['title'],
+                'data': closet['data'],
             }
         return fetch
 
     def _closet(self, src):
         self.closets = []
         for x in src.find_all('li', re.compile(r'no\d{6}')):
-            c = {'href': x.a['href'], 'title': x.a.text, 'fetched': False}
+            href = x.a['href']
+            c = {'title': x.a.text, 'fetched': False, 'data': None}
             self.closets.append(c)
             setattr(
                 self.__class__,
-                f'live_{c["href"].split("=")[1]}',
-                self._closet_method_factory(c)
+                f'live_{href.split("=")[1]}',
+                self._closet_method_factory(c, href)
             )
 
     @require_login
