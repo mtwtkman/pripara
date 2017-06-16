@@ -30,13 +30,10 @@ This script exposes APIs which are `Config`, `Client` and `User`. Mainly you nee
 `Client` needs `email` and `password` to login. `Config` helps storing there.
 
 ```sh
->>> from pripara import config, client
->>> conf = config.Config()
->>> conf.load()
->>> cli = client.Client(**conf.as_dict())
->>> cli.login()
->>> cli.user.data
-User data
+>>> from pripara.user import User
+>>> user = User()
+>>> user.login()
+>>> user.info
 -- As of 2017/06/13 --
 id:     00000000000
 name:   ほげ

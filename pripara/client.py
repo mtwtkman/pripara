@@ -56,28 +56,30 @@ class Client:
         self.logged_in = False
 
     @valid_response
-    def get(self, params=None):
+    def get(self, url, params=None):
         return requests.get(
-            self.url,
+            url,
             params=params,
             headers=self.headers,
             cookies=self.cookies
         )
 
     @valid_response
-    def post(self, data=None):
+    def post(self, url, data=None):
         return requests.post(
-            self.url,
+            url,
             data=data,
             headers=self.headers
         )
 
     def login(self):
-        self.url = f'{HOST}/join/login'
-        response = self.post({
-            'password': self.password,
-            'mail_address': self.email,
-        })
+        response = self.post(
+            f'{HOST}/join/login',
+            {
+                'password': self.password,
+                'mail_address': self.email,
+            }
+        )
         if 'マイページへログイン' in response.text:
             raise LoginFailedError('You need to ensure the email and password are correct.')
         self.logged_in = True
@@ -100,10 +102,9 @@ class Client:
             'weekly_total': src.find('dl', 'idolDataLikeWeekRanking').find('dd').text[:-1],
         }
 
-    def _closet_one_factory(self, closet):
+    def _closet_method_factory(self, closet):
         def fetch(self):
-            self.url = f'{HOST}{c["href"]}'
-            response = self.get()
+            response = self.get(f'{HOST}{c["href"]}')
             closet['fetched'] = True
             src = list(bs(response.text, 'html.parser').find('p', 'charText').children)[2:]
             name, count = src[0].text.split('：')
@@ -122,15 +123,14 @@ class Client:
             setattr(
                 self.__class__,
                 f'live_{c["href"].split("=")[1]}',
-                self._closet_one_factory(c)
+                self._closet_method_factory(c)
             )
 
     @require_login
     def logout(self):
-        self.url = f'{HOST}/join/logout'
-        return self.get()
+        self.get(f'{HOST}/join/logout')
+        self.logged_in = False
 
     @require_login
     def team(self):
-        self.url = f'{HOST}mypage/team'
-        return self.get()
+        return self.get(f'{HOST}mypage/team')

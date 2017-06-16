@@ -97,6 +97,10 @@ class User:
             getattr(self, f'_{k}').value = v
         print(f'Logged in as {self.name}')
 
+    def logout(self):
+        self.client.logout()
+        print('bye bye.')
+
     def as_dict(self):
         return {f: getattr(self, f) for f in self.field_names}
 
