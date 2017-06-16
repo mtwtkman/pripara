@@ -131,6 +131,32 @@ class Client:
         self.get(f'{HOST}/join/logout')
         self.logged_in = False
 
+    def _friends(self, src):
+        result = []
+        for friend in src.find_all('tr', re.compile(r'Rank\d+')):
+            tds = friend.find_all('td')
+            likes_elem = next(tds[1].children)
+            if isinstance(likes_elem, str):
+                likes = 0
+            else:
+                # NOTE: I don't know that how structure acturally...
+                likes = int(likes_elem.text)
+            result.append({
+                'name': tds[0].span.text,
+                'rank': int(friend['class'][0][4:]),
+                'likes': likes,
+                'count': int(tds[2].em.text[:-1]),
+            })
+        return result
+
     @require_login
     def team(self):
-        return self.get(f'{HOST}mypage/team')
+        response = self.get(f'{HOST}/mypage/team')
+        src = bs(response.text, 'html.parser')
+        return self._friends(src)
+
+    @require_login
+    def team_total(self):
+        response = self.get(f'{HOST}/mypage/team_count')
+        src = bs(response.text, 'html.parser')
+        return self._friends(src)

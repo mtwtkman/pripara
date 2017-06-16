@@ -41,6 +41,43 @@ class ClientClosetMethodTest(ClientTestMixin, unittest.TestCase):
                 self.assertTrue(hasattr(sbj, f'live_{self.tags[i]}'))
 
 
+class FriendsMethodTest(ClientTestMixin, unittest.TestCase):
+    def setUp(self):
+        self.tbody = '<tbody>{}</tbody>'
+        self.tr = '''
+        <tr class="Rank{rank}">
+          <th><img src="img.png"></th>
+          <td><span>{name}</span>さん</td>
+          <td>{likes}</td>
+          <td class="lastChild"><em>{count}回</em></td>
+        </tr>
+        '''
+
+    def _callFUT(self, src):
+        ins = self._makeOne()
+        return ins._friends(bs(src, 'html.parser'))
+
+    def test_no_friend(self):
+        result = self._callFUT(self.tbody)
+        self.assertEqual(len(result), 0)
+
+    def test_has_friend(self):
+        inner = [
+            dict(zip(('rank', 'name', 'likes', 'count'), x))
+            for x in (
+                (1, 'そふぃ', '<em>10</em>', 100),
+                (2, 'ドロシー', '-', 10),
+            )
+        ]
+        result = self._callFUT(self.tbody.format('\n'.join([self.tr.format(**x) for x in inner])))
+        self.assertEqual(len(result), len(inner))
+        for friend, r in zip(inner, result):
+            for k, v in friend.items():
+                if k == 'likes':
+                    v = 0 if v == '-' else int(bs(v, 'html.parser').text)
+                self.assertEqual(r[k], v)
+
+
 class DecoratorTestMixin:
     def _dummyClass(self, return_value):
         class C:
