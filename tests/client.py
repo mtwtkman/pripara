@@ -33,7 +33,7 @@ class ClientClosetMethodTest(ClientTestMixin, unittest.TestCase):
         sbj = self._callFUT()
         self.assertEqual(len(sbj.closets), len(self.htmls))
         expects = [
-                {'title': f'test{i}', 'fetched': False, 'data': None} for i, x in enumerate(self.tags)
+                {'title': f'test{i}', 'data': None} for i, x in enumerate(self.tags)
         ]
         for i, e in enumerate(expects):
             with self.subTest(e=e):

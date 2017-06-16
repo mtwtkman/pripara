@@ -40,7 +40,10 @@ def valid_response(method):
     return wrapper
 
 
-class Closet(dict): pass
+class Closet(dict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fetched = False
 
 
 class Client:
@@ -111,9 +114,9 @@ class Client:
 
     def _closet_method_factory(self, closet, href):
         def fetch(self):
-            if not closet['fetched']:
+            if not closet.fetched:
                 response = self.get(f'{HOST}{href}')
-                closet['fetched'] = True
+                closet.fetched = True
                 src = list(bs(response.text, 'html.parser').find('p', 'charText').children)[2:]
                 name, count = src[0].text.split('：')
                 closet['data'] = {
@@ -131,7 +134,7 @@ class Client:
         for x in src.find_all('li', re.compile(r'no\d{6}')):
             href = x.a['href']
             method_name = f'live_{href.split("=")[1]}'
-            c = Closet({'title': x.a.text, 'fetched': False, 'data': None})
+            c = Closet({'title': x.a.text, 'data': None})
             self.closets.append(c)
             setattr(
                 self.__class__,
