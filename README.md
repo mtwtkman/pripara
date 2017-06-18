@@ -42,7 +42,7 @@ At first you must login every running this script.
 
 Ok, you are so great idol. Laala said...
 
-And if you want to login
+And if you want to logout,
 ```sh
 >>> user.logout()
 ```
@@ -72,7 +72,12 @@ And you can access each data via `User` object.
 ...
 ```
 
-All of them are listed at `User.field_names`. Check this out.
+All of them are listed at `User.field_names`. Or `User` object exposes `as_dict()` which show you them as dictionary format.
+
+```sh
+>>> user.as_dict()
+{'id': 'XXXXXXXXXXX', 'name': 'パル', ...}
+```
 
 ## How to fetch team data
 ```sh
