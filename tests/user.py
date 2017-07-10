@@ -88,10 +88,10 @@ class IntTest(unittest.TestCase):
         sbj.value = v
         self.assertEqual(sbj.value, int(v))
 
-    def test_raise_with_none(self):
+    def test_with_none(self):
         sbj = self._makeOne()
-        with self.assertRaises(TypeError):
-            sbj.value = None
+        sbj.value = None
+        self.assertIsNone(sbj.value)
 
 
 class UserTest(unittest.TestCase):

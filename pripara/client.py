@@ -104,12 +104,12 @@ class Client:
         return {
             'play_data_date': src.find('p', 'mypageDate').text.split('：')[1],
             'name': self.username,
-            'teammate': src.find('a', 'btnD').find('strong').text,
+            'teammate': src.find('a', 'btnD').find('strong').text or None,
             'id': src.find('dl', 'idolDataId').find('dd').text,
             'rank': src.find('dl', 'idolDataRank').find('dd').text,
-            'like': src.find('dl', 'idolDataLike').dd.text,
-            'weekly_ranking': src.find('dl', 'idolDataStateRanking').find('dd').text[:-1],
-            'weekly_total': src.find('dl', 'idolDataLikeWeekRanking').find('dd').text[:-1],
+            'like': src.find('dl', 'idolDataLike').dd.text or None,
+            'weekly_ranking': src.find('dl', 'idolDataStateRanking').find('dd').text[:-1] or None,
+            'weekly_total': src.find('dl', 'idolDataLikeWeekRanking').find('dd').text[:-1] or None,
         }
 
     def _closet_method_factory(self, closet, href):

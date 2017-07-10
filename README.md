@@ -12,27 +12,25 @@ You know Laala said "Everyone are friend, everyone are idol.". I think so.
 - priparaclub account
 
 # Install
-I recommend to create virtual env for python.
+There is a script for preparing.
 
-```sh
-$ git clone git@github.com:mtwtkman/pripara
-$ cd pripara
-$ pyvenv venv
-$ . venv/bin/activate
-$ pip install -r requirements.txt
-```
+`$ ./init`
+
+And you activate virtual env.
+
+`$ . venv/bin/activate`
 
 Done✨
 
 # Usage
-This script exposes APIs which are `Config`, `Client` and `User`. Mainly you need is `User`.
+`pripara` exposes APIs which are `Config`, `Client` and `User`. Mainly you need is `User`.
 
 - `Config` helps you to store login data.
 - `Client` helps you to fetch data from priparaclub.
 - `User` helps you to store fetched data and show them.
 
 ## How to login and logout
-At first you must login every running this script.
+At first you must login every newly process.
 
 ```sh
 >>> from pripara.user import User
@@ -42,7 +40,8 @@ At first you must login every running this script.
 
 Ok, you are so great idol. Laala said...
 
-And if you want to logout,
+And if you want to logout, easy.
+
 ```sh
 >>> user.logout()
 ```

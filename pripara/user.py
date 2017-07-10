@@ -45,9 +45,12 @@ class Str(Field):
 class Int(Field):
     _type = (int, str)
     default = 0
-    allow_none = False
+    allow_none = True
 
     def _clean(self, value):
+        if value is None:
+            return
+
         if isinstance(value, str):
             if not value.isdigit():
                 raise TypeError
