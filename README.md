@@ -1,6 +1,6 @@
 # Mind
 > プリパラは好きぷり?
-> じゃあ大丈夫ぷり!
+> じゃあ大丈夫、出来るぷり!
 
 # pripara
 This is a client for [priparaclub](https://pripara.jp/join/login) implemented by python.
